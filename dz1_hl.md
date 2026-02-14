@@ -48,4 +48,5 @@ Pinterest - платформа для визуального поиска и р�
 |Россия|4.80|
 |Мексика|4.41|
 
-![alt text](image-1.png)
+<img width="1143" height="414" alt="изображение" src="https://github.com/user-attachments/assets/a6a2adce-dcae-4699-9824-516a4d2eb88c" />
+
