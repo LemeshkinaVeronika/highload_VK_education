@@ -20,8 +20,9 @@ Pinterest - платформа для визуального поиска и р�
 
  - **578M** Mountly Active Users [[1]](https://investor.pinterestinc.com/news-and-events/press-releases/press-releases-details/2025/Pinterest-Announces-Second-Quarter-2025-Results-Delivers-17-Revenue-Growth-and-Record-Users/default.aspx)
  - **140М** Daily Active Users  [[4]](https://apptopia.com/app/pinterest)
- -  **1.440B** посещений в месяц [[3]](https://pro.similarweb.com/#/digitalsuite/websiteanalysis/website-audience/*/999/3m?webSource=Total&key=pinterest.com&selectedTab=geography)
+ - **1.440B** посещений в месяц [[3]](https://pro.similarweb.com/#/digitalsuite/websiteanalysis/website-audience/*/999/3m?webSource=Total&key=pinterest.com&selectedTab=geography)
 - Среднее время посещения **7 минут 4 секунды** [[3]](https://pro.similarweb.com/#/digitalsuite/websiteanalysis/website-audience/*/999/3m?webSource=Total&key=pinterest.com&selectedTab=geography)
+- **1.5B** пинов в неделю сохраняют пользователи [[5]](https://sproutsocial.com/insights/pinterest-statistics/)
   
 ### Анализ целевой аудитории
 
