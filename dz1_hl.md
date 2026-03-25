@@ -385,7 +385,8 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ## Логическая схема БД
 
-<img width="1163" height="781" alt="Вставленное изображение" src="https://github.com/user-attachments/assets/558a78cb-1305-4886-b9a5-b9ad0e954e3e" />
+<img width="1179" height="787" alt="изображение" src="https://github.com/user-attachments/assets/2e3620f0-f3e7-40c1-bdb9-9770016d0c4a" />
+
 
 
 ### Размеры данных
