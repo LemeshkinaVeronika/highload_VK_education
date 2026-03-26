@@ -425,20 +425,6 @@ L4 должен содержать как минимум 2 узла (active-acti
 | `users` | `PRIMARY KEY (user_id)`, `UNIQUE(email)`, `UNIQUE(username)` |
 | `user_sessions` | `PRIMARY KEY (session_id)`, `user_id`, `expires_at` |
 
-##### Cassandra
-
-| Таблица | Ключ доступа |
-|---|---|
-| `boards` | `owner_user_id` |
-| `pins` | `pin_id` |
-| `board_pins` | `board_id` |
-| `pin_likes` | `pin_id`, `user_id` |
-| `pin_comments` | `pin_id` |
-| `media_objects` | `media_id` |
-| `feed_candidates` | `user_id`|
-| `feed_impressions` | `user_id` |
-| `user_features` | `user_id` |
-| `pin_features` | `pin_id` |
 
 ---
 
