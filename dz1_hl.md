@@ -440,17 +440,6 @@ L4 должен содержать как минимум 2 узла (active-acti
 | `user_features` | `user_id` |
 | `pin_features` | `pin_id` |
 
-
-#### Денормализация
-
-
-| Таблица | Денормализованные поля | Причина |
-|---|---|---|
-| `pins` | `like_count`, `save_count`, `comment_count` | быстрый показ карточки пина|
-| `boards` | `cover_media_id` | быстрый показ обложки доски |
-| `pin_comments` | `username`, `avatar_url`  | уменьшение числа чтений  |
-
-
 ---
 
 #### Шардирование и репликация
