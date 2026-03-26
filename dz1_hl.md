@@ -408,5 +408,87 @@ L4 должен содержать как минимум 2 узла (active-acti
 | search_queries     | ~2.67B/day               | ~80 B         | ~214 GB/day        |-/очень высокая |
 | media      | ~104B объектов           | ~3 MB         | ~314.6 PB          | очень-очень высокая/-  |
 
+## 6. Физическая схема БД
+
+<img width="1717" height="1074" alt="physicaldb" src="https://github.com/user-attachments/assets/38384305-25d6-4edd-8940-7a3d38a7d106" />
+
+
+### Индексы, денормализация, шардирование и репликация
+
+#### Индексы
+
+##### PostgreSQL
+
+| Таблица | Индексы |
+|---|---|
+| `users` | `PRIMARY KEY (user_id)`, `UNIQUE(email)`, `UNIQUE(username)` |
+| `user_sessions` | `PRIMARY KEY (session_id)`, `user_id`, `expires_at` |
+
+##### Cassandra
+
+| Таблица | Ключ доступа |
+|---|---|
+| `boards` | `owner_user_id` |
+| `pins` | `pin_id` |
+| `board_pins` | `board_id` |
+| `pin_likes` | `pin_id`, `user_id` |
+| `pin_comments` | `pin_id` |
+| `media_objects` | `media_id` |
+| `feed_candidates` | `user_id`|
+| `feed_impressions` | `user_id` |
+| `user_features` | `user_id` |
+| `pin_features` | `pin_id` |
+
+
+#### Денормализация
+
+
+| Таблица | Денормализованные поля | Причина |
+|---|---|---|
+| `pins` | `like_count`, `save_count`, `comment_count` | быстрый показ карточки пина|
+| `boards` | `cover_media_id` | быстрый показ обложки доски |
+| `pin_comments` | `username`, `avatar_url`  | уменьшение числа чтений  |
+
+
+---
+
+#### Шардирование и репликация
+
+##### PostgreSQL
+
+| Таблица | Шардирование | Репликация |
+|---|---|---|
+| `users` | по `user_id` | `primary + 2 replicas` |
+| `user_sessions` | по `user_id` | `primary + 2 replicas` |
+
+##### Cassandra
+
+Выполняется с помощью `consistent hashing` по ключу доступа. Для репликации используется `NetworkTopologyStrategy`.
+
+| Таблица | Шардирование | Репликация |
+|---|---|---|
+| `boards` | по `owner_user_id` или `board_id` | `RF=3`, `QUORUM` |
+| `pins` | по `pin_id` | `RF=3`, `QUORUM` |
+| `board_pins` | по `board_id` | `RF=3`, `QUORUM` |
+| `pin_likes` | по `pin_id` | `RF=3`, `QUORUM` |
+| `pin_comments` | по `pin_id` | `RF=3`, `QUORUM` |
+| `media_objects` | по `media_id` | `RF=3`, `QUORUM` |
+| `feed_candidates` | по `user_id` | `RF=3`, `QUORUM` |
+| `feed_impressions` | по `(user_id, event_date)` | `RF=3`, `QUORUM` |
+| `user_features` | по `user_id` | `RF=3`, `QUORUM` |
+| `pin_features` | по `pin_id` | `RF=3`, `QUORUM` |
+
+##### ElasticSearch
+
+| Индекс | Шардирование | Репликация |
+|---|---|---|
+| `search_index` | шарды по `pin_id` | `primary shard + replica shard` |
+
+##### ClickHouse
+
+| Таблица | Шардирование | Репликация |
+|---|---|---|
+| `user_events_DWH` | распределенная таблица по `hash(user_id)`/ партиционирование по дате | `ReplicatedMergeTree`, 2 копии |
+
 
 
