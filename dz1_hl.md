@@ -410,7 +410,8 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ## 6. Физическая схема БД
 
-<img width="1717" height="1074" alt="physicaldb" src="https://github.com/user-attachments/assets/38384305-25d6-4edd-8940-7a3d38a7d106" />
+<img width="1717" height="1074" alt="Untitled (3)-fotor-20260326183811" src="https://github.com/user-attachments/assets/96f6ac8d-d8dc-4292-a725-a386d41e3403" />
+
 
 
 ### Индексы, денормализация, шардирование и репликация
