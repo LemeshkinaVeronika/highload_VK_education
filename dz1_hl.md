@@ -385,10 +385,7 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ## Логическая схема БД
 
-<img width="822" height="782" alt="изображение" src="https://github.com/user-attachments/assets/596c52f5-d3ca-4d59-8bee-27d389720f18" />
-
-
-
+<img width="1567" height="1320" alt="Untitled (7)" src="https://github.com/user-attachments/assets/212b9192-e7df-458e-9934-69cf5800965a" />
 
 
 ### Размеры данных
@@ -410,32 +407,51 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ## 6. Физическая схема БД
 
-<img width="1717" height="1074" alt="Untitled (3)-fotor-20260326183811" src="https://github.com/user-attachments/assets/96f6ac8d-d8dc-4292-a725-a386d41e3403" />
-
-
+<img width="1674" height="1165" alt="Untitled (5)-fotor-202603290819" src="https://github.com/user-attachments/assets/1c7f24bb-2f80-4b33-ba08-9fd33edb609d" />
 
 ### Индексы, денормализация, шардирование и репликация
 
 #### Индексы
 
-##### PostgreSQL
+##### Cassandra
 
-| Таблица | Индексы |
-|---|---|
-| `users` | `PRIMARY KEY (user_id)`, `UNIQUE(email)`, `UNIQUE(username)` |
-| `user_sessions` | `PRIMARY KEY (session_id)`, `user_id`, `expires_at` |
 
+| Таблица | Индекс | Зачем |
+|---|---|---|
+| `users` | `PRIMARY KEY ((user_id))` | чтение и обновление профиля по `user_id` |
+| `boards` | `PRIMARY KEY ((owner_user_id), updated_at, board_id)` | быстрый список досок пользователя |
+| `pins` | `PRIMARY KEY ((pin_id))` | чтение карточки пина |
+| `board_pins` | `PRIMARY KEY ((board_id), created_at, pin_id)` | чтение пинов доски в порядке добавления |
+| `pin_likes` | `PRIMARY KEY ((pin_id), user_id)` | проверка лайка пользователя на пине / список лайков пина |
+| `pin_comments` | `PRIMARY KEY ((pin_id), created_at, comment_id)` | чтение комментариев пина по времени |
+| `feed_candidates` | `PRIMARY KEY ((user_id), generated_at, pin_id)` | чтение ленты пользователя |
+| `feed_impressions` | `PRIMARY KEY ((user_id, event_date), shown_at, impression_id)` | хранение показов по дню |
 
 ---
+#### Redis
+
+| Таблица  | Ключ | Зачем |
+|---|---|---|
+| `user_sessions` | `session:{session_id}` | чтение конкретной сессии |
+| `user_sessions_by_user` | `user_sessions:{user_id}` | получение / инвалидирование всех сессий пользователя |
+
+##### ElasticSearch
+
+| Индекс | Поля индексации | Зачем |
+|---|---|---|
+| `search_index` | `title`, `description`, `source_url` | полнотекстовый поиск по пинам |
+| `search_index` | `pin_id` | для точной идентификации|
+| `search_index` | `updated_at` | сортировка / фильтрация по времени обновления |
+
+##### ClickHouse
+
+| Таблица | Partition By | ORDER BY | Зачем |
+|---|---|---|---|
+| `user_events_DWH` | `toDate(event_timestamp)` | `(event_type, user_id, event_timestamp)` | аналитика пользовательских событий |
+| `user_features` | `toDate(updated_at)` | `(user_id, updated_at)` | агрегированные признаки пользователя |
+| `pin_features` | `toDate(updated_at)` | `(pin_id, updated_at)` | агрегированные признаки пина |
 
 #### Шардирование и репликация
-
-##### PostgreSQL
-
-| Таблица | Шардирование | Репликация |
-|---|---|---|
-| `users` | по `user_id` | `primary + 2 replicas` |
-| `user_sessions` | по `user_id` | `primary + 2 replicas` |
 
 ##### Cassandra
 
@@ -443,6 +459,7 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 | Таблица | Шардирование | Репликация |
 |---|---|---|
+| `users` | по `user_id` | `RF=3`, `QUORUM` |
 | `boards` | по `owner_user_id` или `board_id` | `RF=3`, `QUORUM` |
 | `pins` | по `pin_id` | `RF=3`, `QUORUM` |
 | `board_pins` | по `board_id` | `RF=3`, `QUORUM` |
@@ -465,6 +482,22 @@ L4 должен содержать как минимум 2 узла (active-acti
 | Таблица | Шардирование | Репликация |
 |---|---|---|
 | `user_events_DWH` | распределенная таблица по `hash(user_id)`/ партиционирование по дате | `ReplicatedMergeTree`, 2 копии |
+
+##### Redis
+
+| Компонент | Шардирование | Репликация | 
+|---|---|---|
+| `user_sessions` | Redis Cluster |  Sentinel failover | 
+
+#### Клиентские библиотеки / интеграции
+
+| Компонент | Клиент / интеграция | 
+|---|---|
+| Cassandra | `gocql`  |
+| Redis | `go-redis` | 
+| ClickHouse | `clickhouse-go` | 
+| Поток интеграции | Kafka | 
+
 
 
 
