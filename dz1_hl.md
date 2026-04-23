@@ -569,5 +569,8 @@ L4 должен содержать как минимум 2 узла (active-acti
 | ELK | Логи | Централизованный сбор и анализ логов |
 | OpenTelemetry | Трассировка | Анализ межсервисных запросов и поиск узких мест |
 
+## 9. Схема проекта
+
+<img width="3836" height="2500" alt="Blank board(3)" src="https://github.com/user-attachments/assets/a6fcf000-fab7-4f31-8be0-2263b14293e7" />
 
 
