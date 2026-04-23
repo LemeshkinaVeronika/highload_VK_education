@@ -571,7 +571,8 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ## 9. Схема проекта
 
-<img width="4405" height="2500" alt="Blank board(5)" src="https://github.com/user-attachments/assets/f36aef18-0808-4979-8313-173ab0b32d94" />
+<img width="4658" height="2500" alt="Blank board(6)" src="https://github.com/user-attachments/assets/09371040-94ae-4735-8cc4-54f2eef20de1" />
+
 
 
 
