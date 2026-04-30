@@ -415,17 +415,16 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ##### Cassandra
 
-
-| Таблица | Индекс | Зачем |
+| Таблица | PRIMARY KEY | Зачем |
 |---|---|---|
-| `users` | `PRIMARY KEY ((user_id))` | чтение и обновление профиля по `user_id` |
-| `boards` | `PRIMARY KEY ((owner_user_id), updated_at, board_id)` | быстрый список досок пользователя |
-| `pins` | `PRIMARY KEY ((pin_id))` | чтение карточки пина |
-| `board_pins` | `PRIMARY KEY ((board_id), created_at, pin_id)` | чтение пинов доски в порядке добавления |
-| `pin_likes` | `PRIMARY KEY ((pin_id), user_id)` | проверка лайка пользователя на пине / список лайков пина |
-| `pin_comments` | `PRIMARY KEY ((pin_id), created_at, comment_id)` | чтение комментариев пина по времени |
-| `feed_candidates` | `PRIMARY KEY ((user_id), generated_at, pin_id)` | чтение ленты пользователя |
-| `feed_impressions` | `PRIMARY KEY ((user_id, event_date), shown_at, impression_id)` | хранение показов по дню |
+| `users` | `((user_id))` | чтение профиля по id |
+| `boards` | `((owner_user_id), updated_at, board_id)` | список досок пользователя |
+| `pins` | `((pin_id))` | чтение карточки пина |
+| `board_pins` | `((board_id), created_at, pin_id)` | пины доски по времени |
+| `pin_likes` | `((pin_id), user_id)` | лайки пина / проверка лайка |
+| `pin_comments` | `((pin_id), created_at, comment_id)` | комментарии по времени |
+| `feed_candidates` | `((user_id), generated_at, pin_id)` | кандидаты ленты |
+| `feed_impressions` | `((user_id, event_date), shown_at, impression_id)` | показы по дням |
 
 ---
 #### Redis
@@ -437,11 +436,12 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ##### ElasticSearch
 
-| Индекс | Поля индексации | Зачем |
-|---|---|---|
-| `search_index` | `title`, `description`, `source_url` | полнотекстовый поиск по пинам |
-| `search_index` | `pin_id` | для точной идентификации|
-| `search_index` | `updated_at` | сортировка / фильтрация по времени обновления |
+| Индекс | Поле | Тип | Назначение |
+|---|---|---|---|
+| `search_index` | `title` | text (analyzed) | полнотекстовый поиск |
+|  | `description` | text (analyzed) | полнотекстовый поиск |
+|  | `updated_at` | date | сортировка |
+|  | `popularity_score` | float | ранжирование |
 
 ##### ClickHouse
 
