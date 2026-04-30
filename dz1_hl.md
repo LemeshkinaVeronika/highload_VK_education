@@ -573,6 +573,26 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 <img width="4836" height="2980" alt="Blank board(12)" src="https://github.com/user-attachments/assets/0b837f83-c0bd-48ab-ad24-079f9d3770b8" />
 
+## 10. Обеспечение надежности
+
+| Механизм                                   | Как реализован                                                                 | 
+|-------------------------------------------|--------------------------------------------------------------------------------|
+| **Event-driven архитектура**              | Взаимодействие сервисов через Kafka (`pin-events`, `user-events`, и т.д.)     | 
+| **Outbox**                        | `pin_outbox`, `board_outbox`, `impression_outbox` и publisher                 | 
+| **CQRS**          | write → Kafka → materializers → Cassandra / Elasticsearch                     | 
+| **Асинхронная обработка**                | Kafka streams                     | 
+| **Асинхронная синхронизация данных**      | cron repair jobs + materializer workers                                       | 
+| **Eventual consistency**                  | read-модели обновляются асинхронно                                            | 
+
+
+
+| Сценарий                    | Где                    | Как реализован |
+|----------------------------|------------------------|----------------|
+| **Placeholder media**      | Pin Service / S3       | если картинка недоступна, то возвращается placeholder |
+| **Fallback feed**          | Feed Service / Redis   | если Impression сервис недоступен, то возвращается последний snapshot ленты |
+| **Search cache**           | Search Service / Redis | если Elasticsearch недоступен, то выдаются кэшированные результаты |
+| **Default feature values** | Ranking Service        | если нет фичей, то используются дефолтные |
+| **Потеря вторичных пользовательских событий** | Interaction / Kafka pipeline | лайки, комментарии и просмотры обрабатываются асинхронно, т.е их потеря не влияет на доступность системы|
 
 
 
