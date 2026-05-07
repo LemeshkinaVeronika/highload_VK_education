@@ -595,6 +595,98 @@ L4 должен содержать как минимум 2 узла (active-acti
 | **Default feature values** | Ranking Service        | если нет фичей, то используются дефолтные |
 | **Потеря вторичных пользовательских событий** | Interaction / Kafka pipeline | лайки, комментарии и просмотры обрабатываются асинхронно, т.е их потеря не влияет на доступность системы|
 
+## 11. Список серверов
+
+Будем использовать Kubernetes для stateful и stateless-сервисов.  
+
+Примем производительность Go-сервисов приближенную к C++ сервисам:
+
+| Характер сервиса      | RPS  | RAM    |
+| --------------------- | ---- | ------ |
+| Тяжелая бизнес-логика | 10   | 100 MB |
+| Средняя бизнес-логика | 100  | 100 MB |
+| Легкое JSON API       | 5000 | 10 MB  |
+
+### Stateless-компоненты
+
+Значения Peak RPS взяты из пукта 2.
+
+| Сервис | Нагрузка | Бизнес-логика | CPU | RAM | Net |
+|---|---:|---|---:|---:|---:|
+| API Gateway | 422 067 RPS | легкая | 85 | 850 MB | 15 Gbit/s |
+| Auth Service | 29 037 RPS | легкая | 6 | 60 MB | 1 Gbit/s |
+| User Service | 50 000 RPS | средняя | 500 | 50 GB | 2 Gbit/s |
+| Pin Service | 294 008 RPS | средняя | 2941 | 294 GB | 8 Gbit/s |
+| Board Service | 7 440 RPS | средняя | 75 | 7.5 GB | 1 Gbit/s |
+| Search Service | 92 593 RPS | средняя | 926 | 93 GB | 4 Gbit/s |
+| Feed Service | 48 611 RPS | средняя | 487 | 49 GB | 6 Gbit/s |
+| Interaction Service | 93 579 RPS | средняя | 936 | 94 GB | 2 Gbit/s |
+| Impression Service | 297 620 ops/s | средняя | 2977 | 298 GB | 5 Gbit/s |
+| Ranking Service | 141 204 batch RPS | тяжелая | 14 121 | 1.4 TB | 3 Gbit/s |
+| Search Index Workers | 1 997 events/s | средняя | 20 | 2 GB | 1 Gbit/s |
+| Analytics Workers | 344 419 events/s | легкая | 69 | 690 MB | 1 Gbit/s |
+
+Суммарно для всех stateless сервисов выходит примерно: 
+
+| CPU | RAM | Net |
+|---:|---:|---:|
+| ~23 143 CPU | ~2.3 TB | ~49 Gbit/s |
+
+Возьмем резервирование мощностей в 30%, тогда:
+
+| CPU | RAM | Net |
+|---:|---:|---:|
+| ~30100 CPU | ~3.0 TB | ~64 Gbit/s |
+
+
+| Конфигурация | Ядра | RAM | Disk | Network |
+|---|---:|---:|---:|---:|
+| Supermicro 2U / 2× AMD EPYC 7543 / 512 GB RAM / 4× NVMe U.2 3.84 TB | 64 | 512 GB | 15.36 TB NVMe | 2×10GbE |
+
+Тогда необходимое количество серверов:
+
+30 100 CPU / 48 CPU = 471 серверов
+С учетом округления и неравномерной упаковки подов: 480 серверов
+
+### Stateful-компоненты
+
+| Node pool     | Компоненты                 | Конфигурация                                              | CPU |    RAM |    Disk | Network | Всего серверов |
+| ------------- | -------------------------- | --------------------------------------------------------- | --: | -----: | ------: | ------: | ----: |
+| cassandra     | Cassandra StatefulSet      | 2× AMD EPYC 7313 / 256 GB RAM / 12× NVMe/SATA SSD 3.84 TB |  32 | 256 GB |   46 TB | 2×10GbE |   120 |
+| redis         | Redis Cluster              | 2× AMD EPYC 7313 / 512 GB RAM / 2× NVMe 1.92 TB           |  32 | 512 GB | 3.84 TB | 2×10GbE |    40 |
+| elasticsearch | Elasticsearch StatefulSet  | 2× AMD EPYC 7313 / 256 GB RAM / 8× NVMe U.2 3.84 TB       |  32 | 256 GB |   30 TB | 2×10GbE |    80 |
+| kafka         | Kafka brokers              | 2× AMD EPYC 7313 / 128 GB RAM / 8× NVMe U.2 3.84 TB       |  32 | 128 GB |   30 TB | 2×10GbE |    24 |
+| clickhouse    | ClickHouse shards/replicas | 2× AMD EPYC 7443 / 512 GB RAM / 8× NVMe U.2 7.68 TB       |  48 | 512 GB |   61 TB | 2×10GbE |    24 |
+| ingress       | Nginx Ingress Controller   | 1× AMD EPYC / 64 GB RAM / 2× NVMe                         |  16 |  64 GB | 3.84 TB |   25GbE |    20 |
+
+
+### Сравнение моделей хостинга
+
+#### Собственное железо
+
+| Модель / Конфигурация сервера | Цена сервера | Цена в месяц ( с учетом амортизации в 5 лет) |
+| :--- | ---: | ---: |
+| Supermicro 2U / 2× AMD EPYC 7543 / 512 GB RAM / 4× NVMe 3.84 TB | 755 908 | 12 599 |
+| 2× AMD EPYC 7313 / 256 GB RAM / 12× NVMe 3.84 TB | 2 500 000 | 41 667 |
+| 2× AMD EPYC 7313 / 512 GB RAM / 2× NVMe 1.92 TB | 1 350 000 | 22 500 |
+| 2× AMD EPYC 7313 / 256 GB RAM / 8× NVMe U.2 3.84 TB | 1 900 000 | 31 667 |
+| 2× AMD EPYC 7313 / 128 GB RAM / 8× NVMe U.2 3.84 TB | 1 800 000 | 30 000 |
+| 2× AMD EPYC 7443 / 512 GB RAM / 8× NVMe U.2 7.68 TB | 3 200 000 | 53 333 |
+| 1× AMD EPYC (16C) / 64 GB RAM / 2× NVMe 1.92 TB | 400 000 | 6 667 |
+
+
+# Другие модели
+
+
+| Конфигурация сервера | Облачная модель | Аренда VDS| Аренда Bare Metal |
+| :--- | ---: | ---: | ---: |
+| SuperMicro 2U / 2× EPYC 7543 / 512 GB / 4× NVMe 3.84 TB | ~350 000 | — | ~95 000 |
+| 2× EPYC 7313 / 256 GB / 12× NVMe 3.84 TB | ~550 000 | — | ~130 000 |
+| 2× EPYC 7313 / 512 GB / 2× NVMe 1.92 TB | ~380 000 | — | ~110 000 |
+| 2× EPYC 7313 / 256 GB / 8× NVMe U.2 3.84 TB | ~480 000 | — | ~120 000 |
+| 2× EPYC 7313 / 128 GB / 8× NVMe U.2 3.84 TB | ~450 000 | — | ~115 000 |
+| 2× EPYC 7443 / 512 GB / 8× NVMe U.2 7.68 TB | ~680 000 | — | ~220 000 |
+| 1× AMD EPYC (16C) / 64 GB / 2× NVMe 1.92 TB | ~85 000 | ~55 000 | ~27 000 |
 
 
 
