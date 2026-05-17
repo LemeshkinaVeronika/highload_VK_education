@@ -571,7 +571,8 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 ## 9. Схема проекта
 
-<img width="5149" height="3060" alt="Blank board(18)" src="https://github.com/user-attachments/assets/d9362ccb-1f56-4f6c-b850-42d690fadede" />
+<img width="8606" height="9113" alt="Blank board(22)" src="https://github.com/user-attachments/assets/85f1c625-344a-4336-9f3a-ef27899c09b9" />
+
 
 
 
@@ -590,12 +591,11 @@ L4 должен содержать как минимум 2 узла (active-acti
 
 | Сценарий                    | Где                    | Как реализован |
 |----------------------------|------------------------|----------------|
-| **Placeholder media**      | Pin Service / S3       | если картинка недоступна, то возвращается placeholder |
-| **Fallback feed**          | Feed Service / Redis   | если Impression сервис недоступен, то возвращается последний snapshot ленты |
 | **Search cache**           | Search Service / Redis | если Elasticsearch недоступен, то выдаются кэшированные результаты |
 | **Default feature values** | Ranking Service        | если нет фичей, то используются дефолтные |
 | **Потеря вторичных пользовательских событий** | Interaction / Kafka pipeline | лайки, комментарии и просмотры обрабатываются асинхронно, т.е их потеря не влияет на доступность системы|
-
+| **Fallback to offline ranking** | Recommendation Service | если in_process ranker или online feature/context layer недоступны, сервис рекомендаций использует заранее отсортированные кандидаты из feed / pin_candidates без realtime переранжирования |
+| **Hydration fallback** | Pin Service | если часть pin metadata недоступна, такие пины пропускаются или заменяются следующими кандидатами из уже отранжированного списка |
 ## 11. Список серверов
 
 Будем использовать Kubernetes для stateful и stateless-сервисов.  
